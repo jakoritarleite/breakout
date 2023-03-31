@@ -18,7 +18,7 @@ pub struct Player {
 impl Player {
     pub fn new(ctx: &mut Context) -> Result<Player, GameError> {
         let rect = Rect::new(0.0, 0.0, 170.0, 30.0);
-        let shape = Mesh::new_rectangle(ctx, DrawMode::fill(), rect, Color::BLACK)?;
+        let shape = Mesh::new_rectangle(ctx, DrawMode::fill(), rect, Color::WHITE)?;
 
         Ok(Self {
             // Align it in the middle of the screen
