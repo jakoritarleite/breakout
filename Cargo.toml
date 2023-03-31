@@ -5,4 +5,4 @@ edition = "2021"
 authors = ["Joao Koritar jakoritarleite@gmail.com"]
 
 [dependencies]
-ggez = "0.8.1"
+ggez = "0.9.0-rc0"
