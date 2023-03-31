@@ -1,11 +1,11 @@
 use ggez::event::EventHandler;
-use ggez::glam::Vec2;
-use ggez::graphics::{self, Color};
-use ggez::input::keyboard::KeyCode;
+use ggez::graphics::{self, Canvas, Color};
+
 use ggez::Context;
 use ggez::GameError;
 
 use crate::player::Player;
+use crate::Entity;
 
 pub struct Breakout {
     pub player: Player,
@@ -21,13 +21,7 @@ impl Breakout {
 
 impl EventHandler for Breakout {
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
-        if ctx.keyboard.is_key_pressed(KeyCode::A) {
-            self.player.pos_x -= 1.0;
-        }
-
-        if ctx.keyboard.is_key_pressed(KeyCode::D) {
-            self.player.pos_x += 1.0;
-        }
+        update_entity(&mut self.player, ctx)?;
 
         Ok(())
     }
@@ -35,11 +29,16 @@ impl EventHandler for Breakout {
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         let mut canvas = graphics::Canvas::from_frame(ctx, Color::from([0.1, 0.2, 0.3, 1.0]));
 
-        canvas.draw(
-            &self.player.shape,
-            Vec2::new(self.player.pos_x, ctx.gfx.size().1 - 150.0),
-        );
+        draw_entity(&self.player, ctx, &mut canvas)?;
 
         canvas.finish(ctx)
     }
+}
+
+fn update_entity<T: Entity>(entity: &mut T, ctx: &mut Context) -> Result<(), GameError> {
+    entity.update(ctx)
+}
+
+fn draw_entity<T: Entity>(entity: &T, ctx: &Context, canvas: &mut Canvas) -> Result<(), GameError> {
+    entity.draw(ctx, canvas)
 }
