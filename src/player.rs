@@ -1,5 +1,6 @@
 use crate::balls::Ball;
-use crate::balls::BALL_RADIUS;
+use crate::geometry;
+use crate::physics::collision;
 use crate::Entity;
 use ggez::glam::vec2;
 use ggez::glam::Vec2;
@@ -21,7 +22,6 @@ pub struct Player {
     speed: Vec2,
     pub pos_x: f32,
     pos_y: f32,
-    rect: Rect,
     pub shape: Mesh,
     pub shots: Vec<Ball>,
 }
@@ -42,7 +42,6 @@ impl Player {
             // Align it in the middle of the screen
             pos_x: ctx.gfx.size().0 * 0.5,
             pos_y: ctx.gfx.size().1 - 150.0,
-            rect,
             shape,
             shots: vec![],
         })
@@ -50,6 +49,18 @@ impl Player {
 }
 
 impl Entity for Player {
+    fn velocity(&self) -> Vec2 {
+        self.speed
+    }
+
+    fn position(&self) -> Vec2 {
+        vec2(self.pos_x, self.pos_y)
+    }
+
+    fn dimensions(&self) -> (f32, f32) {
+        (PLAYER_WIDTH, PLAYER_HEIGHT)
+    }
+
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         let dt = ctx.time.delta().as_secs_f32();
 
@@ -73,39 +84,40 @@ impl Entity for Player {
 
         self.shots.retain(|shot| shot.pos_y < ctx.gfx.size().1);
 
+        let player_pos = self.position();
+
         for shot in self.shots.iter_mut() {
             shot.update(ctx)?;
 
-            // Intersection system
-            let left = (shot.pos_x - BALL_RADIUS).max(self.pos_x - PLAYER_WIDTH_HALF);
-            let top = (shot.pos_y - BALL_RADIUS).max(self.pos_y - PLAYER_HEIGHT_HALF);
+            let shot_pos = shot.position();
+            let shot_dim = shot.dimensions();
+            let shot_vel = shot.velocity();
 
-            let right = (shot.pos_x + BALL_RADIUS).min(self.pos_x + PLAYER_WIDTH_HALF);
-            let bottom = (shot.pos_y + BALL_RADIUS).min(self.pos_y + PLAYER_HEIGHT_HALF);
+            if let Some((_, _, w, h)) = geometry::intersection(
+                shot_pos,
+                shot_dim.0,
+                shot_dim.0,
+                player_pos,
+                PLAYER_WIDTH_HALF,
+                PLAYER_HEIGHT_HALF,
+            ) {
+                let (shot_pos, shot_vel) = collision::aabb(
+                    shot_pos,
+                    shot_dim.0,
+                    shot_dim.1,
+                    shot_vel,
+                    player_pos,
+                    PLAYER_WIDTH,
+                    PLAYER_HEIGHT,
+                    w,
+                    h,
+                );
 
-            // (x, y, w, h)
-            let intersection = (left, top, right - left, bottom - top);
+                shot.pos_x = shot_pos.x;
+                shot.pos_y = shot_pos.y;
 
-            if right < left || bottom < top {
-                continue;
-            }
-
-            // AABB Collision system
-            let shot_center = vec2(shot.pos_x - BALL_RADIUS, shot.pos_y - BALL_RADIUS);
-            let player_center = vec2(self.pos_x - PLAYER_WIDTH, self.pos_y - PLAYER_HEIGHT);
-
-            let to = shot_center - player_center;
-            let to_signum = to.signum();
-
-            match intersection.2 > intersection.3 {
-                true => {
-                    shot.pos_y -= to_signum.y * intersection.3;
-                    shot.vel.y = -to_signum.y * shot.vel.y.abs();
-                }
-                false => {
-                    shot.pos_x -= to_signum.x * intersection.2;
-                    shot.vel.x = -to_signum.x * shot.vel.x.abs();
-                }
+                shot.vel.x = shot_vel.x;
+                shot.vel.y = shot_vel.y;
             }
         }
 
