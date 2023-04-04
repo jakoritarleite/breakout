@@ -9,8 +9,8 @@ use rand::Rng;
 
 use crate::Entity;
 
-const BALL_SPEED: f32 = 5.0;
-const BALL_RADIUS: f32 = 10.0;
+const BALL_SPEED: f32 = 300f32;
+const BALL_RADIUS: f32 = 10f32;
 
 pub struct Ball {
     pub vel: Vec2,
@@ -46,13 +46,8 @@ impl Ball {
             shape,
         })
     }
-}
 
-impl Entity for Ball {
-    fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
-        self.pos_x += self.vel.x * BALL_SPEED;
-        self.pos_y += self.vel.y * BALL_SPEED;
-
+    pub fn bounce(&mut self, ctx: &Context) {
         if self.pos_x < BALL_RADIUS {
             self.vel.x = 1.0;
         }
@@ -68,6 +63,17 @@ impl Entity for Ball {
         if self.pos_y > ctx.gfx.size().1 - BALL_RADIUS {
             self.vel.y = -1.0;
         }
+    }
+}
+
+impl Entity for Ball {
+    fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
+        let dt = ctx.time.delta().as_secs_f32();
+
+        self.pos_x += self.vel.x * BALL_SPEED * dt;
+        self.pos_y += self.vel.y * BALL_SPEED * dt;
+
+        self.bounce(ctx);
 
         Ok(())
     }
