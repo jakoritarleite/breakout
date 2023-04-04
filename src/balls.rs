@@ -10,7 +10,7 @@ use rand::Rng;
 use crate::Entity;
 
 const BALL_SPEED: f32 = 300f32;
-pub const BALL_RADIUS: f32 = 10f32;
+const BALL_RADIUS: f32 = 10f32;
 
 pub struct Ball {
     pub vel: Vec2,
@@ -63,6 +63,18 @@ impl Ball {
 }
 
 impl Entity for Ball {
+    fn velocity(&self) -> Vec2 {
+        self.vel
+    }
+
+    fn position(&self) -> Vec2 {
+        vec2(self.pos_x, self.pos_y)
+    }
+
+    fn dimensions(&self) -> (f32, f32) {
+        (BALL_RADIUS, BALL_RADIUS)
+    }
+
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         let dt = ctx.time.delta().as_secs_f32();
 

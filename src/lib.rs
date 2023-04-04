@@ -1,11 +1,22 @@
-use ggez::{graphics::Canvas, Context, GameError};
+use ggez::glam::Vec2;
+use ggez::graphics::Canvas;
+use ggez::Context;
+use ggez::GameError;
 
 pub mod balls;
 pub mod blocks;
+pub mod geometry;
+pub mod physics;
 pub mod player;
 pub mod state;
 
-trait Entity {
+pub trait Entity {
+    fn velocity(&self) -> Vec2;
+
+    fn position(&self) -> Vec2;
+
+    fn dimensions(&self) -> (f32, f32);
+
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError>;
 
     fn draw(&self, ctx: &Context, canvas: &mut Canvas) -> Result<(), GameError>;
