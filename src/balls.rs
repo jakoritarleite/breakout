@@ -10,7 +10,7 @@ use rand::Rng;
 use crate::Entity;
 
 const BALL_SPEED: f32 = 300f32;
-const BALL_RADIUS: f32 = 10f32;
+pub const BALL_RADIUS: f32 = 10f32;
 
 pub struct Ball {
     pub vel: Vec2,
@@ -26,13 +26,13 @@ impl Ball {
             DrawMode::fill(),
             vec2(-BALL_RADIUS, -BALL_RADIUS),
             BALL_RADIUS,
-            1.0,
+            0.1,
             Color::WHITE,
         )?;
 
         let origin = (
             ctx.gfx.size().0 / 2.0 - BALL_RADIUS,
-            ctx.gfx.size().1 - 150.0,
+            ctx.gfx.size().1 - 225.0,
         );
 
         Ok(Self {
@@ -58,10 +58,6 @@ impl Ball {
 
         if self.pos_y < BALL_RADIUS {
             self.vel.y = 1.0;
-        }
-
-        if self.pos_y > ctx.gfx.size().1 - BALL_RADIUS {
-            self.vel.y = -1.0;
         }
     }
 }
