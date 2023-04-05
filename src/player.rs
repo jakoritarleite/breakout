@@ -1,4 +1,4 @@
-use crate::balls::Ball;
+use crate::ball::Ball;
 use crate::geometry;
 use crate::physics::collision;
 use crate::Entity;
