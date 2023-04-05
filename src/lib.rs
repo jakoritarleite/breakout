@@ -3,8 +3,8 @@ use ggez::graphics::Canvas;
 use ggez::Context;
 use ggez::GameError;
 
-pub mod balls;
-pub mod blocks;
+pub mod ball;
+pub mod block;
 pub mod geometry;
 pub mod physics;
 pub mod player;
