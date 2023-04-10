@@ -9,6 +9,8 @@ use super::entity::Entities;
 use super::entity::Entity;
 use super::TypeIdMap;
 
+pub mod query;
+
 #[derive(Debug, Default)]
 pub struct World {
     entities: Entities,
@@ -26,7 +28,7 @@ impl World {
         self.components.init_component::<T>(&mut self.storages)
     }
 
-    pub fn spawn<B: Bundle>(&mut self, bundle: B) {
+    pub fn spawn<B: Bundle>(&mut self, bundle: B) -> Entity {
         let entity = self.entities.alloc();
 
         let mut components_ids = Vec::new();
@@ -40,7 +42,10 @@ impl World {
             },
         );
 
-        self.entities.set_components(entity, components_ids.clone());
+        self.entities
+            .set_components(entity.clone(), components_ids.clone());
+
+        entity
     }
 
     pub fn query<Q>(&mut self) {}
@@ -99,6 +104,15 @@ mod test {
         world.spawn((Velocity(3), Position(1, 1)));
 
         dbg!(world);
+    }
+
+    #[test]
+    fn query_entity_components() {
+        let mut world = World::new();
+
+        let entity = world.spawn((Position(0, 0), Velocity(1)));
+
+        world.query::<Position>();
     }
 
     #[test]
