@@ -7,3 +7,5 @@ authors = ["Joao Koritar jakoritarleite@gmail.com"]
 [dependencies]
 ggez = "0.9.0-rc0"
 rand = "0.8.5"
+breakout-macros = { path = "macros" }
+rustc-hash = "1.1.0"
