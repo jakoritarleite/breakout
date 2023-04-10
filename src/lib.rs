@@ -5,6 +5,7 @@ use ggez::GameError;
 
 pub mod ball;
 pub mod block;
+pub mod ecs;
 pub mod geometry;
 pub mod physics;
 pub mod player;
