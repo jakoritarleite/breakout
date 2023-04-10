@@ -42,6 +42,8 @@ impl World {
 
         self.entities.set_components(entity, components_ids.clone());
     }
+
+    pub fn query<Q>(&mut self) {}
 }
 
 #[derive(Debug, Default)]
@@ -97,5 +99,14 @@ mod test {
         world.spawn((Velocity(3), Position(1, 1)));
 
         dbg!(world);
+    }
+
+    #[test]
+    fn query_components() {
+        let mut world = World::new();
+
+        world.spawn((Position(0, 0), Velocity(1)));
+
+        world.query::<Position>();
     }
 }
