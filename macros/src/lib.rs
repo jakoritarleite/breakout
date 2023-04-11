@@ -24,10 +24,12 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
                 storages: &mut #breakout_path::world::Storages,
                 ids: &mut impl FnMut(#breakout_path::component::ComponentId)
             ) {
-                ids(components.init_component::<#struct_name>(storages));
+                let component_id = components.init_component::<#struct_name>(storages);
+
+                ids(component_id.clone());
                 storages.push_component(
                     entity.clone(),
-                    std::any::TypeId::of::<#struct_name>(),
+                    component_id,
                     self.clone()
                 );
             }

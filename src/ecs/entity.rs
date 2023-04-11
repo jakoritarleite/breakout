@@ -26,6 +26,10 @@ impl Entities {
             .and_modify(|comps| comps.extend(components_ids.clone().into_iter()))
             .or_insert(components_ids);
     }
+
+    pub fn components(&self, entity: &Entity) -> Option<Vec<ComponentId>> {
+        self.components.get(entity).cloned()
+    }
 }
 
 impl From<usize> for Entity {

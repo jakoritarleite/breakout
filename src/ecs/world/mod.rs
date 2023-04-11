@@ -1,5 +1,8 @@
-use std::any::TypeId;
+use std::any::Any;
 use std::collections::HashMap;
+
+use self::query::Query;
+use self::query::QueryState;
 
 use super::component::Bundle;
 use super::component::Component;
@@ -7,7 +10,6 @@ use super::component::ComponentId;
 use super::component::Components;
 use super::entity::Entities;
 use super::entity::Entity;
-use super::TypeIdMap;
 
 pub mod query;
 
@@ -48,39 +50,50 @@ impl World {
         entity
     }
 
-    pub fn query<Q>(&mut self) {}
+    pub fn query<Q: Query>(&mut self) -> QueryState<Q> {
+        QueryState::new(self)
+    }
 }
 
 #[derive(Debug, Default)]
 pub struct Storages {
-    pub hashmaps: TypeIdMap<HashMap<Entity, Box<dyn Component>>>,
+    pub hashmaps: HashMap<ComponentId, HashMap<Entity, Box<dyn Any>>>,
 }
 
 impl Storages {
-    pub fn init_component(&mut self, type_id: TypeId) {
+    pub fn init_component(&mut self, component_id: ComponentId) {
         self.hashmaps
-            .entry(type_id)
+            .entry(component_id)
             .or_insert_with(|| HashMap::new());
     }
 
     pub fn push_component<C: Component + Clone>(
         &mut self,
         entity: Entity,
-        type_id: TypeId,
+        component_id: ComponentId,
         component: C,
     ) {
         let component = Box::new(component);
 
         self.hashmaps
-            .entry(type_id)
+            .entry(component_id)
             .and_modify(|comp| {
                 comp.entry(entity.clone()).or_insert(component.clone());
             })
             .or_insert_with(|| {
-                let mut inner: HashMap<_, Box<dyn Component>> = HashMap::new();
+                let mut inner: HashMap<_, Box<dyn Any>> = HashMap::new();
                 inner.insert(entity, component);
                 inner
             });
+    }
+
+    pub fn component(&self, entity: &Entity, component_id: &ComponentId) -> Option<&Box<dyn Any>> {
+        match self.hashmaps.get(component_id) {
+            Some(component_storage) => {
+                return component_storage.get(entity);
+            }
+            None => return None,
+        }
     }
 }
 
@@ -103,24 +116,19 @@ mod test {
         world.spawn((Position(0, 0), Velocity(1)));
         world.spawn((Velocity(3), Position(1, 1)));
 
-        dbg!(world);
-    }
-
-    #[test]
-    fn query_entity_components() {
-        let mut world = World::new();
-
-        let entity = world.spawn((Position(0, 0), Velocity(1)));
-
-        world.query::<Position>();
+        // dbg!(world);
     }
 
     #[test]
     fn query_components() {
         let mut world = World::new();
 
-        world.spawn((Position(0, 0), Velocity(1)));
+        let entity_1 = world.spawn((Position(0, 0), Velocity(1)));
 
-        world.query::<Position>();
+        let mut query = world.query::<(&Position, &Velocity)>();
+
+        let _components = query.get(&mut world, entity_1).unwrap();
+
+        // dbg!(components);
     }
 }
