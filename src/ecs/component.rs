@@ -48,9 +48,11 @@ impl Components {
             .entry(type_id)
             .or_insert_with(|| Components::init_component_inner(components));
 
-        storages.init_component(type_id);
+        let component_id = ComponentId(*index);
 
-        ComponentId(*index)
+        storages.init_component(component_id.clone());
+
+        component_id
     }
 
     #[inline]
