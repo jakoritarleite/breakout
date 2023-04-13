@@ -11,7 +11,7 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
     let struct_name = &ast.ident;
     // let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
 
-    let breakout_path = path!(crate::ecs);
+    let breakout_path = path!(breakout::ecs);
 
     TokenStream::from(quote! {
         impl #breakout_path::component::Component for #struct_name {}
