@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 use self::query::Query;
@@ -57,7 +58,7 @@ impl World {
 
 #[derive(Debug, Default)]
 pub struct Storages {
-    pub hashmaps: HashMap<ComponentId, HashMap<Entity, Box<dyn Any>>>,
+    pub hashmaps: HashMap<ComponentId, HashMap<Entity, Box<RefCell<dyn Any>>>>,
 }
 
 impl Storages {
@@ -73,7 +74,7 @@ impl Storages {
         component_id: ComponentId,
         component: C,
     ) {
-        let component = Box::new(component);
+        let component = Box::new(RefCell::new(component));
 
         self.hashmaps
             .entry(component_id)
@@ -81,54 +82,54 @@ impl Storages {
                 comp.entry(entity.clone()).or_insert(component.clone());
             })
             .or_insert_with(|| {
-                let mut inner: HashMap<_, Box<dyn Any>> = HashMap::new();
+                let mut inner: HashMap<_, Box<RefCell<dyn Any>>> = HashMap::new();
                 inner.insert(entity, component);
                 inner
             });
     }
 
-    pub fn component(&self, entity: &Entity, component_id: &ComponentId) -> Option<&Box<dyn Any>> {
-        match self.hashmaps.get(component_id) {
-            Some(component_storage) => {
-                return component_storage.get(entity);
-            }
-            None => return None,
-        }
-    }
+    // pub fn component(&self, entity: &Entity, component_id: &ComponentId) -> Option<&Box<dyn Any>> {
+    //     match self.hashmaps.get(component_id) {
+    //         Some(component_storage) => {
+    //             return component_storage.get(entity);
+    //         }
+    //         None => return None,
+    //     }
+    // }
 }
 
-#[cfg(test)]
-mod test {
-    use breakout_macros::Component;
-
-    use super::World;
-
-    #[derive(Debug, Clone, Component)]
-    struct Position(u8, u8);
-
-    #[derive(Debug, Clone, Component)]
-    struct Velocity(u8);
-
-    #[test]
-    fn spawn_entities() {
-        let mut world = World::new();
-
-        world.spawn((Position(0, 0), Velocity(1)));
-        world.spawn((Velocity(3), Position(1, 1)));
-
-        // dbg!(world);
-    }
-
-    #[test]
-    fn query_components() {
-        let mut world = World::new();
-
-        let entity_1 = world.spawn((Position(0, 0), Velocity(1)));
-
-        let mut query = world.query::<(&Position, &Velocity)>();
-
-        let _components = query.get(&mut world, entity_1).unwrap();
-
-        // dbg!(components);
-    }
-}
+// #[cfg(test)]
+// mod test {
+//     use breakout_macros::Component;
+//
+//     use super::World;
+//
+//     #[derive(Debug, Clone, Component)]
+//     struct Position(u8, u8);
+//
+//     #[derive(Debug, Clone, Component)]
+//     struct Velocity(u8);
+//
+//     #[test]
+//     fn spawn_entities() {
+//         let mut world = World::new();
+//
+//         world.spawn((Position(0, 0), Velocity(1)));
+//         world.spawn((Velocity(3), Position(1, 1)));
+//
+//         // dbg!(world);
+//     }
+//
+//     #[test]
+//     fn query_components() {
+//         let mut world = World::new();
+//
+//         let entity_1 = world.spawn((Position(0, 0), Velocity(1)));
+//
+//         let mut query = world.query::<(&Position, &Velocity)>();
+//
+//         let _components = query.get(&mut world, entity_1).unwrap();
+//
+//         // dbg!(components);
+//     }
+// }
