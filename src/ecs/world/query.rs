@@ -36,10 +36,10 @@ impl<Q: Query> QueryState<Q> {
         Self { fetch_state }
     }
 
-    pub fn get<'w>(&mut self, world: &'w World, entity: Entity) -> Result<Q::Item<'w>, String> {
+    pub fn get<'w>(&mut self, world: &'w World, entity: Entity) -> Q::Item<'w> {
         let mut fetch = Q::init_fetch(world, &self.fetch_state);
 
-        Ok(Q::fetch(&mut fetch, entity))
+        Q::fetch(&mut fetch, entity)
     }
 }
 
