@@ -1,7 +1,12 @@
-use std::any::{Any, TypeId};
+use std::any::Any;
+use std::any::TypeId;
+use std::cell::Ref;
+use std::cell::RefCell;
+use std::cell::RefMut;
 use std::collections::HashMap;
 
-use crate::ecs::component::{Component, ComponentId};
+use crate::ecs::component::Component;
+use crate::ecs::component::ComponentId;
 use crate::ecs::entity::Entity;
 
 use super::World;
@@ -31,7 +36,7 @@ impl<Q: Query> QueryState<Q> {
         Self { fetch_state }
     }
 
-    pub fn get<'w>(&mut self, world: &'w mut World, entity: Entity) -> Result<Q::Item<'w>, String> {
+    pub fn get<'w>(&mut self, world: &'w World, entity: Entity) -> Result<Q::Item<'w>, String> {
         let mut fetch = Q::init_fetch(world, &self.fetch_state);
 
         Ok(Q::fetch(&mut fetch, entity))
@@ -55,11 +60,32 @@ impl Query for Entity {
 }
 
 pub struct ReadFetch<'a> {
-    storage: Option<&'a HashMap<Entity, Box<dyn Any>>>,
+    storage: Option<&'a HashMap<Entity, Box<RefCell<dyn Any>>>>,
+}
+
+fn downcast_ref<'w, T: Any>(cell: &'w Box<RefCell<dyn Any>>) -> Option<Ref<'w, T>> {
+    let r = cell.borrow();
+
+    if (*r).type_id() == TypeId::of::<T>() {
+        return Some(Ref::map(r, |x| x.downcast_ref::<T>().unwrap()));
+    }
+
+    None
+}
+
+fn downcast_mut<'w, T: Any>(cell: &'w RefCell<dyn Any>) -> Option<RefMut<'w, T>> {
+    let r = cell.borrow_mut();
+
+    if (*r).type_id() == TypeId::of::<T>() {
+        // let t = r;
+        return Some(RefMut::map(r, |x| x.downcast_mut::<T>().unwrap()));
+    }
+
+    None
 }
 
 impl<T: Component> Query for &T {
-    type Item<'w> = Option<&'w T>;
+    type Item<'w> = Option<Ref<'w, T>>;
 
     type Fetch<'w> = ReadFetch<'w>;
 
@@ -78,7 +104,35 @@ impl<T: Component> Query for &T {
     fn fetch<'w>(fetch: &mut Self::Fetch<'w>, entity: Entity) -> Self::Item<'w> {
         match fetch.storage {
             Some(storage) => match storage.get(&entity) {
-                Some(component) => component.downcast_ref::<T>(),
+                Some(component) => downcast_ref::<T>(component),
+                None => None,
+            },
+            None => None,
+        }
+    }
+}
+
+impl<T: Component> Query for &mut T {
+    type Item<'w> = Option<RefMut<'w, T>>;
+
+    type Fetch<'w> = ReadFetch<'w>;
+
+    type State = ComponentId;
+
+    fn init_state(world: &mut World) -> Self::State {
+        world.init_component::<T>()
+    }
+
+    fn init_fetch<'w>(world: &'w World, component_id: &ComponentId) -> Self::Fetch<'w> {
+        ReadFetch {
+            storage: world.storages.hashmaps.get(component_id),
+        }
+    }
+
+    fn fetch<'w>(fetch: &mut Self::Fetch<'w>, entity: Entity) -> Self::Item<'w> {
+        match fetch.storage {
+            Some(storage) => match storage.get(&entity) {
+                Some(component) => downcast_mut::<T>(component),
                 None => None,
             },
             None => None,
