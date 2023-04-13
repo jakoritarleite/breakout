@@ -87,49 +87,4 @@ impl Storages {
                 inner
             });
     }
-
-    // pub fn component(&self, entity: &Entity, component_id: &ComponentId) -> Option<&Box<dyn Any>> {
-    //     match self.hashmaps.get(component_id) {
-    //         Some(component_storage) => {
-    //             return component_storage.get(entity);
-    //         }
-    //         None => return None,
-    //     }
-    // }
 }
-
-// #[cfg(test)]
-// mod test {
-//     use breakout_macros::Component;
-//
-//     use super::World;
-//
-//     #[derive(Debug, Clone, Component)]
-//     struct Position(u8, u8);
-//
-//     #[derive(Debug, Clone, Component)]
-//     struct Velocity(u8);
-//
-//     #[test]
-//     fn spawn_entities() {
-//         let mut world = World::new();
-//
-//         world.spawn((Position(0, 0), Velocity(1)));
-//         world.spawn((Velocity(3), Position(1, 1)));
-//
-//         // dbg!(world);
-//     }
-//
-//     #[test]
-//     fn query_components() {
-//         let mut world = World::new();
-//
-//         let entity_1 = world.spawn((Position(0, 0), Velocity(1)));
-//
-//         let mut query = world.query::<(&Position, &Velocity)>();
-//
-//         let _components = query.get(&mut world, entity_1).unwrap();
-//
-//         // dbg!(components);
-//     }
-// }

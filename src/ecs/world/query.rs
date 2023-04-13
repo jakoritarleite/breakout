@@ -77,7 +77,6 @@ fn downcast_mut<'w, T: Any>(cell: &'w RefCell<dyn Any>) -> Option<RefMut<'w, T>>
     let r = cell.borrow_mut();
 
     if (*r).type_id() == TypeId::of::<T>() {
-        // let t = r;
         return Some(RefMut::map(r, |x| x.downcast_mut::<T>().unwrap()));
     }
 
